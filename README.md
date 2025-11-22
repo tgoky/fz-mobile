@@ -1,50 +1,196 @@
-# Welcome to your Expo app 👋
+# FZ Mobile - Forex Trading Platform
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A mobile application for forex trading built with Expo and React Native, replicating the functionality of the [FZ web platform](https://github.com/tgoky/fz).
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Real-time Market Data** - Live forex pair analysis with AI predictions
+- **Trade Signals** - Smart trading signals with entry, stop loss, and take profit levels
+- **Market Structures** - Fair Value Gaps (FVG), Break of Structure (BOS), Order Blocks (OB), and Liquidity Zones
+- **Technical Indicators** - RSI, MACD, ADX, Bollinger Bands, EMAs, and more
+- **Backtesting** - Test your trading strategies with historical data
+- **Trade Journal** - Track and analyze your trades
+- **User Settings** - Customize equity, risk management, and trading preferences
+- **Authentication** - Secure login/signup with Supabase
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- **Framework**: Expo (React Native)
+- **Language**: TypeScript
+- **Backend**: Supabase (PostgreSQL)
+- **State Management**: Zustand
+- **Navigation**: Expo Router
+- **Charts**: React Native Chart Kit
+- **Styling**: React Native StyleSheet
 
-   ```bash
-   npx expo start
-   ```
+## Prerequisites
 
-In the output, you'll find options to open the app in a
+Before you begin, ensure you have:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Node.js (v18 or higher)
+- npm or yarn
+- Expo CLI (`npm install -g expo-cli`)
+- A Supabase account and project
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Setup Instructions
 
-## Get a fresh project
-
-When you're ready, run:
+### 1. Clone the repository
 
 ```bash
-npm run reset-project
+git clone https://github.com/tgoky/fz-mobile.git
+cd fz-mobile
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Install dependencies
 
-## Learn more
+```bash
+npm install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+### 3. Set up Supabase
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+1. Create a new project at [supabase.com](https://supabase.com)
+2. Run the database schema from the provided SQL file in your Supabase SQL Editor
+3. Get your Supabase URL and Anon Key from Project Settings > API
 
-## Join the community
+### 4. Configure environment variables
 
-Join our community of developers creating universal apps.
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+2. Update `.env` with your Supabase credentials:
+   ```
+   EXPO_PUBLIC_SUPABASE_URL=your-supabase-url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   ```
+
+### 5. Start the development server
+
+```bash
+npx expo start
+```
+
+### 6. Run on your device
+
+- **iOS Simulator**: Press `i`
+- **Android Emulator**: Press `a`
+- **Physical Device**: Scan the QR code with Expo Go app
+
+## Project Structure
+
+```
+fz-mobile/
+├── app/                    # Application screens and navigation
+│   ├── (auth)/            # Authentication screens
+│   │   ├── login.tsx
+│   │   └── signup.tsx
+│   ├── (tabs)/            # Main tab screens
+│   │   ├── index.tsx      # Dashboard
+│   │   ├── markets.tsx    # Market analysis
+│   │   ├── signals.tsx    # Trade signals
+│   │   ├── backtest.tsx   # Backtesting
+│   │   └── profile.tsx    # User profile & settings
+│   └── _layout.tsx        # Root layout with auth protection
+├── lib/                   # Core library files
+│   ├── supabase.ts       # Supabase client configuration
+│   ├── database.types.ts # TypeScript types for database
+│   ├── store/            # State management (Zustand)
+│   │   └── auth-store.ts
+│   └── hooks/            # Custom React hooks
+│       ├── use-signals.ts
+│       └── use-user-settings.ts
+├── components/           # Reusable UI components
+├── constants/           # App constants and theme
+└── assets/             # Images, fonts, etc.
+```
+
+## Database Schema
+
+The app uses the same database schema as the web version with 18 tables:
+
+- **User Management**: user_profiles, user_settings
+- **Market Structures**: fair_value_gaps, break_of_structures, order_blocks, liquidity_zones, price_rejections
+- **Trade Signals**: trade_signals
+- **ML Predictions**: ai_predictions, technical_indicators
+- **Backtesting**: backtest_runs, backtest_trades, backtest_results
+- **Journal**: trade_journal, activity_logs
+- **Notifications**: alert_configurations, notifications
+- **Historical Data**: ohlc_candles
+
+## Key Features Explained
+
+### Dashboard
+- Account overview with equity, active signals, win rate, and P/L
+- Quick view of active trade signals
+- Real-time data refresh
+
+### Markets
+- AI-powered trade recommendations for major pairs
+- Technical indicators (RSI, MACD, ADX)
+- Win probability and expected risk/reward ratios
+
+### Signals
+- Filter signals by status (pending, active, completed, cancelled)
+- Detailed signal information including entry, SL, TP
+- Confidence levels and P/L tracking
+
+### Backtest
+- Historical strategy testing
+- Comprehensive performance metrics
+- Win rate, profit factor, max drawdown analysis
+
+### Profile
+- Manage account equity and risk settings
+- Configure trading preferences
+- View preferred pairs and timeframes
+
+## Development
+
+```bash
+# Start development server
+npm start
+
+# Run on iOS
+npm run ios
+
+# Run on Android
+npm run android
+
+# Run on web
+npm run web
+
+# Lint code
+npm run lint
+```
+
+## Building for Production
+
+### iOS
+
+```bash
+eas build --platform ios
+```
+
+### Android
+
+```bash
+eas build --platform android
+```
+
+## Related Projects
+
+- [FZ Web Platform](https://github.com/tgoky/fz) - The web version of this forex trading platform
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+MIT
+
+## Support
+
+For questions or issues, please open an issue on GitHub.
