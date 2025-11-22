@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { apiService } from '@/lib/services/api-service';
 
@@ -17,6 +18,7 @@ const MAJOR_PAIRS = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD']
 
 export default function MarketsScreen() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
   const isDark = colorScheme === 'dark';
   const [marketData, setMarketData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,20 +81,11 @@ export default function MarketsScreen() {
   };
 
   const handleAnalyzePair = async (pair: string) => {
-    setAnalyzing(true);
-    try {
-      const result = await apiService.analyzePair(pair);
-      Alert.alert(
-        'Analysis Complete',
-        `${pair}: ${result.recommendation}\nEntry: ${result.entry_price.toFixed(5)}\nSL: ${result.stop_loss.toFixed(5)}\nTP: ${result.take_profit.toFixed(5)}\nR:R: 1:${result.risk_reward.toFixed(2)}\nConfidence: ${(result.confidence * 100).toFixed(0)}%`
-      );
-      // Refresh data to show new results
-      setTimeout(() => fetchMarketData(), 2000);
-    } catch (error) {
-      Alert.alert('Error', 'Failed to analyze. Make sure Python backend is running:\n\npython -m uvicorn src.main:app --reload --port 8000 --host 0.0.0.0');
-    } finally {
-      setAnalyzing(false);
-    }
+    // Navigate to detailed analysis screen
+    router.push({
+      pathname: '/pair-analysis',
+      params: { pair }
+    });
   };
 
   const handleRunAllAnalysis = async () => {
