@@ -6,9 +6,12 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/lib/supabase';
+import { useAnalysis } from '@/lib/hooks/use-analysis';
 
 const MAJOR_PAIRS = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD'];
 
@@ -18,6 +21,7 @@ export default function MarketsScreen() {
   const [marketData, setMarketData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { analyzing, analyzePair, runMarketAnalysis } = useAnalysis();
 
   useEffect(() => {
     fetchMarketData();
@@ -72,6 +76,59 @@ export default function MarketsScreen() {
     setRefreshing(true);
     await fetchMarketData();
     setRefreshing(false);
+  };
+
+  const handleAnalyzePair = async (pair: string) => {
+    try {
+      Alert.alert(
+        'Analyze Pair',
+        `Trigger analysis for ${pair}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Analyze',
+            onPress: async () => {
+              try {
+                await analyzePair(pair);
+                Alert.alert('Success', `Analysis started for ${pair}. Results will appear shortly.`);
+                // Refresh data after a delay to get new results
+                setTimeout(() => fetchMarketData(), 3000);
+              } catch (error) {
+                Alert.alert('Error', 'Failed to trigger analysis. Make sure your API is running.');
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleRunAllAnalysis = async () => {
+    try {
+      Alert.alert(
+        'Run Market Analysis',
+        'Analyze all major pairs? This may take a few minutes.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Run Analysis',
+            onPress: async () => {
+              try {
+                await runMarketAnalysis();
+                Alert.alert('Success', 'Market analysis started. Results will update shortly.');
+                setTimeout(() => fetchMarketData(), 5000);
+              } catch (error) {
+                Alert.alert('Error', 'Failed to run market analysis. Make sure your API is running.');
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const PairCard = ({ data }: any) => {
@@ -197,6 +254,16 @@ export default function MarketsScreen() {
             </View>
           </View>
         )}
+
+        <TouchableOpacity
+          style={[styles.analyzeButton, { borderColor: isDark ? '#2563eb' : '#2563eb' }]}
+          onPress={() => handleAnalyzePair(pair)}
+          disabled={analyzing}
+        >
+          <Text style={styles.analyzeButtonText}>
+            {analyzing ? 'Analyzing...' : '🔄 Analyze'}
+          </Text>
+        </TouchableOpacity>
       </TouchableOpacity>
     );
   };
@@ -207,9 +274,22 @@ export default function MarketsScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <View style={styles.content}>
-        <Text style={[styles.title, { color: isDark ? '#fff' : '#1a1a1a' }]}>
-          Market Analysis
-        </Text>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: isDark ? '#fff' : '#1a1a1a' }]}>
+            Market Analysis
+          </Text>
+          <TouchableOpacity
+            style={[styles.runAllButton, analyzing && styles.runAllButtonDisabled]}
+            onPress={handleRunAllAnalysis}
+            disabled={analyzing}
+          >
+            {analyzing ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.runAllButtonText}>Run All</Text>
+            )}
+          </TouchableOpacity>
+        </View>
         {marketData.map((data) => (
           <PairCard key={data.pair} data={data} />
         ))}
@@ -225,10 +305,31 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 16,
+  },
+  runAllButton: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  runAllButtonDisabled: {
+    backgroundColor: '#93c5fd',
+  },
+  runAllButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   pairCard: {
     padding: 16,
@@ -293,5 +394,18 @@ const styles = StyleSheet.create({
   predictionValue: {
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  analyzeButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    alignItems: 'center',
+  },
+  analyzeButtonText: {
+    color: '#2563eb',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
