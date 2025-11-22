@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/lib/supabase';
-import { useAnalysis } from '@/lib/hooks/use-analysis';
+import { apiService } from '@/lib/services/api-service';
 
 const MAJOR_PAIRS = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD'];
 
@@ -21,7 +21,7 @@ export default function MarketsScreen() {
   const [marketData, setMarketData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { analyzing, analyzePair, runMarketAnalysis } = useAnalysis();
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     fetchMarketData();
@@ -79,55 +79,32 @@ export default function MarketsScreen() {
   };
 
   const handleAnalyzePair = async (pair: string) => {
+    setAnalyzing(true);
     try {
+      const result = await apiService.analyzePair(pair);
       Alert.alert(
-        'Analyze Pair',
-        `Trigger analysis for ${pair}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Analyze',
-            onPress: async () => {
-              try {
-                await analyzePair(pair);
-                Alert.alert('Success', `Analysis started for ${pair}. Results will appear shortly.`);
-                // Refresh data after a delay to get new results
-                setTimeout(() => fetchMarketData(), 3000);
-              } catch (error) {
-                Alert.alert('Error', 'Failed to trigger analysis. Make sure your API is running.');
-              }
-            },
-          },
-        ]
+        'Analysis Complete',
+        `${pair}: ${result.recommendation}\nEntry: ${result.entry_price.toFixed(5)}\nSL: ${result.stop_loss.toFixed(5)}\nTP: ${result.take_profit.toFixed(5)}\nR:R: 1:${result.risk_reward.toFixed(2)}\nConfidence: ${(result.confidence * 100).toFixed(0)}%`
       );
+      // Refresh data to show new results
+      setTimeout(() => fetchMarketData(), 2000);
     } catch (error) {
-      console.error('Error:', error);
+      Alert.alert('Error', 'Failed to analyze. Make sure Python backend is running:\n\npython -m uvicorn src.main:app --reload --port 8000 --host 0.0.0.0');
+    } finally {
+      setAnalyzing(false);
     }
   };
 
   const handleRunAllAnalysis = async () => {
+    setAnalyzing(true);
     try {
-      Alert.alert(
-        'Run Market Analysis',
-        'Analyze all major pairs? This may take a few minutes.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Run Analysis',
-            onPress: async () => {
-              try {
-                await runMarketAnalysis();
-                Alert.alert('Success', 'Market analysis started. Results will update shortly.');
-                setTimeout(() => fetchMarketData(), 5000);
-              } catch (error) {
-                Alert.alert('Error', 'Failed to run market analysis. Make sure your API is running.');
-              }
-            },
-          },
-        ]
-      );
+      const result = await apiService.scanAll();
+      Alert.alert('Success', result.message || 'Market scan started. Results will appear shortly.');
+      setTimeout(() => fetchMarketData(), 3000);
     } catch (error) {
-      console.error('Error:', error);
+      Alert.alert('Error', 'Failed to scan. Make sure Python backend is running:\n\npython -m uvicorn src.main:app --reload --port 8000 --host 0.0.0.0');
+    } finally {
+      setAnalyzing(false);
     }
   };
 
