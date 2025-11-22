@@ -66,13 +66,22 @@ npm install
    EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
    ```
 
-### 5. Start the development server
+### 5. (Optional) Bypass Authentication for Testing
+
+By default, authentication is bypassed to allow you to test the core functionality without setting up Supabase. The app will use a demo user.
+
+To enable full authentication:
+1. Open `app/_layout.tsx`
+2. Change `const BYPASS_AUTH = true;` to `const BYPASS_AUTH = false;`
+3. Complete steps 3-4 above to set up Supabase
+
+### 6. Start the development server
 
 ```bash
 npx expo start
 ```
 
-### 6. Run on your device
+### 7. Run on your device
 
 - **iOS Simulator**: Press `i`
 - **Android Emulator**: Press `a`

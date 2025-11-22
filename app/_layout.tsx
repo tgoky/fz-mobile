@@ -7,6 +7,9 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/lib/store/auth-store';
 
+// Set to true to bypass authentication during development
+const BYPASS_AUTH = true;
+
 export const unstable_settings = {
   anchor: '(tabs)',
 };
@@ -18,10 +21,15 @@ export default function RootLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    initialize();
+    if (!BYPASS_AUTH) {
+      initialize();
+    }
   }, []);
 
   useEffect(() => {
+    // Skip auth checks if bypassed
+    if (BYPASS_AUTH) return;
+
     if (!initialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
@@ -33,7 +41,8 @@ export default function RootLayout() {
     }
   }, [user, initialized, segments]);
 
-  if (!initialized) {
+  // Skip loading check if auth is bypassed
+  if (!BYPASS_AUTH && !initialized) {
     return null;
   }
 

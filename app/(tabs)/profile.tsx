@@ -25,7 +25,20 @@ export default function ProfileScreen() {
     maxTradesPerDay: settings?.max_trades_per_day?.toString() || '3',
   });
 
+  // Demo user for when auth is bypassed
+  const displayUser = user || {
+    email: 'demo@fzforex.com',
+    id: 'demo-user-id-123456',
+  };
+
   const handleSave = async () => {
+    if (!user) {
+      // In demo mode, just update local state
+      Alert.alert('Demo Mode', 'Settings saved locally (auth is bypassed)');
+      setEditing(false);
+      return;
+    }
+
     try {
       await updateSettings({
         equity: parseFloat(formData.equity),
@@ -40,6 +53,11 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = async () => {
+    if (!user) {
+      Alert.alert('Demo Mode', 'Authentication is currently bypassed. Enable auth in app/_layout.tsx to use sign out.');
+      return;
+    }
+
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -96,14 +114,15 @@ export default function ProfileScreen() {
         <View style={[styles.profileHeader, { backgroundColor: isDark ? '#2a2a2a' : '#fff' }]}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
+              {displayUser?.email?.charAt(0).toUpperCase() || 'U'}
             </Text>
           </View>
           <Text style={[styles.email, { color: isDark ? '#fff' : '#1a1a1a' }]}>
-            {user?.email}
+            {displayUser?.email}
+            {!user && <Text style={{ fontSize: 12, color: '#f59e0b' }}> (Demo)</Text>}
           </Text>
           <Text style={[styles.userId, { color: isDark ? '#666' : '#999' }]}>
-            ID: {user?.id.substring(0, 8)}...
+            ID: {displayUser?.id.substring(0, 8)}...
           </Text>
         </View>
 
